@@ -1,0 +1,130 @@
+  /* ========== 全局字体：思源宋体 ========== */
+  :root{
+    --font-sans: "Noto Serif SC", serif;
+    --font-serif: "Noto Serif SC", serif;
+  }
+  html, body{
+    font-family: "Noto Serif SC", serif;
+  }
+  h1, h2, h3, h4, h5, h6,
+  .chapter-label, .eyebrow,
+  .title-overlay h2, .chapter-cover h2,
+  .root-ending h2, .sources-panel h2,
+  .story-kicker, .process-flow-title,
+  .interaction-card h3, .chart-card h3,
+  .process-card h3, .loop-card h3,
+  .waffle-module h3, .modal-title,
+  .tooltip-title, .country-name,
+  .person-name, #calcOutput{
+    font-weight: 700;
+  }
+  p, li, span, div, a, td, th,
+  label, input, textarea, button{
+    font-weight: 400;
+  }
+
+@font-face{font-family:StorySerif;src:url("../../_shared/fonts/Gloock-Regular.ttf") format("truetype");font-display:swap}
+@font-face{font-family:StorySans;src:url("../../_shared/fonts/InstrumentSans-Regular.ttf") format("truetype");font-display:swap}
+
+/* ============== 全局设计规范 · 治愈柔和有机自然风 ============== */
+:root{
+  /* 配色：全部使用CSS变量，禁止零散色值 */
+  --bg-main:#fdfbee;           /* 页面主背景：暖米色 */
+  --bg-warm:#f2dfad;           /* 暖色辅助背景 */
+  --text-dark:#141413;         /* 正文深色文字 */
+  --text-light:#757063;        /* 辅助浅文字 */
+  --text-extralight:#cfccc5;   /* 极浅文字/边框 */
+  --text-muted:#6f6a5d;        /* 弱化文字（兼容旧变量） */
+  --accent-blue:#315f78;       /* 蓝色强调 */
+  --accent-blue2:#b8d5df;      /* 浅蓝辅助 */
+  --accent-gold:#c67b2e;       /* 金色强调 */
+  --accent-green:#5f7d4f;      /* 绿色强调 */
+  --accent-leaf:#9bb277;       /* 叶绿色辅助 */
+  --accent-soil:#4a3327;       /* 泥土色辅助 */
+  --card-bg:rgba(255,252,242,.88); /* 卡片背景 */
+  --shadow-soft:0 24px 80px rgba(44,34,24,.14); /* 柔和阴影 */
+
+  /* 字体规范 */
+  --font-serif:StorySerif,"Noto Serif SC","Source Han Serif CN",serif;
+  --font-sans:StorySans,"Noto Sans SC","Microsoft YaHei",sans-serif;
+  --font-weight-title:600;     /* 标题字重 */
+  --font-weight-body:400;      /* 正文字重 */
+
+  /* 间距基准：4px网格 */
+  --space-xs:.25rem;           /* 4px */
+  --space-sm:.5rem;            /* 8px */
+  --space-md:1rem;             /* 16px */
+  --space-lg:1.5rem;           /* 24px */
+  --space-xl:2rem;             /* 32px */
+  --space-2xl:3rem;            /* 48px */
+
+  /* 圆角统一 */
+  --radius-none:0px;
+  --radius-sm:8px;
+  --radius-md:12px;
+  --radius-lg:28px;
+
+  /* 动画动效标准：统一0.15s-0.3s缓动 */
+  --duration-fast:.15s;
+  --duration-normal:.25s;
+  --duration-slow:.3s;
+  --ease-soft:cubic-bezier(.22,.8,.36,1);
+  --ease-out: ease-out;
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--bg-main);
+  color:var(--text-dark);
+  font:14pt/1.85 "Noto Serif SC", serif;
+  font-weight:var(--font-weight-body);
+  cursor:none
+}
+
+
+/* 标题字体统一 */
+h1,h2,h3,h4,h5,h6,
+.hero-copy h1,.title-overlay h2,
+.chapter-cover h2{
+  font-family:var(--font-serif);
+  font-weight:var(--font-weight-title);
+}
+
+a{color:var(--accent-blue);text-decoration-thickness:.08em;text-underline-offset:.2em}
+button,input{font:inherit}
+button{cursor:pointer}
+
+.skip-link{position:absolute;left:1rem;top:-4rem;background:#fff;color:#000;padding:.5rem 1rem;z-index:20}
+.skip-link:focus{top:1rem}
+:focus-visible{outline:3px solid var(--accent-gold);outline-offset:4px}
+
+#ambient-canvas{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+.chart{min-height:320px}
+.source-link,.visual-note{overflow-wrap:anywhere}
+
+/* 系统减少动画模式：关闭所有动效 */
+@media (prefers-reduced-motion:reduce){
+  *,*:before,*:after{
+    animation-duration:.001ms!important;
+    transition-duration:.001ms!important;
+    scroll-behavior:auto!important
+  }
+  body{cursor:auto}
+}
+
+/* 移动端适配 */
+@media (max-width:720px){
+  body{font-size:16px;cursor:auto}
+  .chart{min-height:260px}
+}
+
+/* 打印适配 */
+@media print{
+  body{cursor:auto;background:#fff}
+  .door-hero,#ambient-canvas,.umbrella-cursor,.tree-symbol{display:none}
+  .article-body{max-width:none}
+  .chart-card,.interaction-card{break-inside:avoid}
+}

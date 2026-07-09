@@ -1,0 +1,417 @@
+  /* ========== 全局字体：思源宋体 ========== */
+  :root{
+    --font-sans: "Noto Serif SC", serif;
+    --font-serif: "Noto Serif SC", serif;
+  }
+  html, body{
+    font-family: "Noto Serif SC", serif;
+  }
+  h1, h2, h3, h4, h5, h6,
+  .chapter-label, .eyebrow,
+  .title-overlay h2, .chapter-cover h2,
+  .root-ending h2, .sources-panel h2,
+  .story-kicker, .process-flow-title,
+  .interaction-card h3, .chart-card h3,
+  .process-card h3, .loop-card h3,
+  .waffle-module h3, .modal-title,
+  .tooltip-title, .country-name,
+  .person-name, #calcOutput{
+    font-weight: 700;
+  }
+  p, li, span, div, a, td, th,
+  label, input, textarea, button{
+    font-weight: 400;
+  }
+
+/* ================================================================
+ *  changhuxian-data-news · 响应式排版与滚动动画标准
+ *  —— 仅输出纯 CSS，所有参数均附中文注释
+ *  —— PC / 移动端双布局，媒体查询分界 768px
+ *  —— 原有局部特殊动画不受全局标准覆盖
+ * ================================================================ */
+
+/* ============== 一、全局滚动淡入上浮动画标准 ==============
+ *  机制：JS 通过 IntersectionObserver 给 [data-reveal] 添加 .is-visible
+ *  此处仅定义 .is-visible 的视觉表现，统一参数
+ *  threshold: .12  |  rootMargin: 0px 0px -8%  （JS 侧已设定）
+ *  —— 原有局部动画（如 oldyear-fade-in / fund-img-fade-in / bingyin-img-enter
+ *      / curtain-content-rise 等）由各自 @keyframes 独立驱动，不受此覆盖 */
+[data-reveal] {
+  /* 初始态：不可见、轻微下移，等待 JS 添加 .is-visible 后触发过渡 */
+  opacity: 0;
+  transform: translateY(28px);          /* 上浮距离：28px，视觉柔和 */
+  transition:
+    opacity .7s cubic-bezier(.22,.8,.36,1),     /* 淡入时长 .7s */
+    transform .7s cubic-bezier(.22,.8,.36,1);    /* 上浮时长 .7s，与淡入同步 */
+  will-change: opacity, transform;
+}
+
+/* 可见态：滚动进入视口后由 JS 添加此 class */
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* —— 特殊动画豁免：以下选择器拥有独立 @keyframes 入场动画，
+     不应被全局 [data-reveal] 的 opacity/transform 覆盖 —— */
+.oldyear-figure[data-reveal],
+.fund-trend-figure[data-reveal],
+.bingyinqipao-figure[data-reveal],
+aside.bingyinqipao-figure[data-reveal],
+.curtain-stage[data-reveal],
+.chapter-cover[data-reveal],
+.title-card[data-reveal],
+.interaction-card[data-reveal],
+.process-card[data-reveal],
+.loop-card[data-reveal],
+.waffle-module[data-reveal],
+.country-runway[data-reveal],
+.city-slider[data-reveal],
+.root-ending[data-reveal],
+.sources-panel[data-reveal] {
+  opacity: 1;                            /* 恢复可见，交由各自 @keyframes 控制入场 */
+  transform: none;                       /* 清除全局下移，避免与独立动画冲突 */
+  transition: none;                       /* 不参与全局过渡 */
+}
+
+/* —— 减弱动效偏好：关闭全局滚动淡入 —— */
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal] {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ============== 二、PC 端排版（≥768px） ============== */
+
+/* —— 2.1 标题 text-wrap: balance ——
+ *  防止单字/词语拆分换行，仅对 PC 端标题生效 */
+@media (min-width: 768px) {
+  h1, h2, h3, h4, h5, h6,
+  .hero-copy h1,
+  .title-overlay h2,
+  .chapter-cover h2 {
+    text-wrap: balance;                   /* 标题自动平衡换行，杜绝单字落行 */
+    word-break: keep-all;                 /* 中文标题不拆词 */
+    overflow-wrap: normal;               /* 仅在允许断行处换行 */
+  }
+}
+
+/* —— 2.2 正文段落排版 —— */
+.article-body {
+  /* PC 端最大阅读宽度，保持舒适行宽 */
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 clamp(1rem, 4vw, 3rem);     /* 左右留白随视口缩放 */
+}
+
+/* 段落通用样式 */
+.article-body p {
+  /* 首行缩进两字符 */
+  text-indent: 2em;
+  /* 段落上下留白：可通过 CSS 变量全局调控 */
+  margin-top: var(--para-gap-y, 1.2rem);    /* 段前间距，默认 1.2rem ≈ 21.6px */
+  margin-bottom: var(--para-gap-y, 1.2rem); /* 段后间距，与段前一致 */
+  line-height: 1.85;                          /* 行高 1.85，中文阅读舒适值 */
+  font-size: 14pt;                            /* 正文字号：四号 14pt */
+}
+
+/* —— 2.3 图文环绕排版（PC 端） ——
+ *  图片左浮动，文字自动环绕图片右侧
+ *  适用于 .oldyear-figure 等需要文字环绕的插图 */
+@media (min-width: 768px) {
+  .oldyear-figure {
+    float: left;                           /* 左浮动，文字环绕右侧 */
+    margin: 1.6rem 1.6rem 1.4rem 0;        /* 上 右 下 左：与环绕文字的间距 */
+    width: clamp(220px, 38%, 420px);        /* 宽度自适应：最小220px，理想38%，最大420px */
+    max-width: 100%;
+  }
+
+  /* 环绕段落：首行缩进两字符 */
+  .oldyear-wrap {
+    text-indent: 2em;
+    overflow: hidden;                       /* 触发 BFC，防止浮动溢出 */
+  }
+
+  /* 独立下一段：不参与环绕，清除浮动 */
+  .oldyear-next {
+    clear: both;
+    text-indent: 2em;
+    margin-top: 1.2rem;
+  }
+
+  /* 清浮动工具类 */
+  .oldyear-clear {
+    clear: both;
+    height: 0;
+    font-size: 0;
+    line-height: 0;
+  }
+}
+
+
+/* ============== 三、移动端排版（<768px） ============== */
+
+@media (max-width: 767px) {
+  /* —— 3.1 移动端基础字号与行高 —— */
+  .article-body p {
+    font-size: 1rem;                       /* 移动端固定 16px，保证可读性 */
+    line-height: 1.8;                       /* 行高略收紧，适配窄屏 */
+    margin-top: var(--para-gap-y-mobile, 1rem);    /* 移动端段前间距，默认 1rem */
+    margin-bottom: var(--para-gap-y-mobile, 1rem); /* 移动端段后间距 */
+  }
+
+  /* —— 3.2 取消图文环绕，图片独占一行 —— */
+  .oldyear-figure {
+    float: none;                           /* 取消浮动，停止文字环绕 */
+    width: 100%;                           /* 图片独占整行宽度 */
+    margin: 1.4rem 0 1.2rem;               /* 仅保留上下间距 */
+    display: block;
+  }
+
+  .oldyear-wrap {
+    text-indent: 2em;                      /* 保持首行缩进 */
+    overflow: visible;                     /* 不再需要 BFC 约束 */
+  }
+
+  .oldyear-next {
+    clear: none;                           /* 不再需要清除浮动 */
+    text-indent: 2em;
+    margin-top: 1rem;
+  }
+
+  .oldyear-clear {
+    display: none;                         /* 移动端无需清浮动元素 */
+  }
+
+  /* —— 3.3 移动端标题：取消 text-wrap: balance ——
+   *  移动端屏幕窄，balance 可能导致字号异常缩小，改用自然换行 */
+  h1, h2, h3, h4, h5, h6,
+  .hero-copy h1,
+  .title-overlay h2,
+  .chapter-cover h2 {
+    text-wrap: normal;                      /* 恢复自然换行 */
+    word-break: normal;                    /* 允许在任意字符间断行（中文安全） */
+    overflow-wrap: break-word;              /* 长单词/URL 可断行 */
+  }
+
+  /* —— 3.4 移动端正文容器：放宽边距 —— */
+  .article-body {
+    max-width: 100%;
+    padding: 0 clamp(.75rem, 4vw, 1.5rem); /* 左右留白适配窄屏 */
+  }
+}
+
+
+/* ============== 四、引用块排版（PC / 移动端统一 + 差异化） ============== */
+
+.article-body blockquote {
+  margin: 1.4rem 0;
+  padding: 1rem 1.4rem;
+  border-left: 3px solid var(--accent-gold, #c67b2e);   /* 左侧金色竖线 */
+  background: rgba(255, 252, 242, .5);                   /* 暖色底 */
+  border-radius: 0 8px 8px 0;
+  font-size: .95em;
+  line-height: 1.8;
+}
+
+.article-body blockquote p {
+  text-indent: 0;                          /* 引用段落不缩进 */
+  margin: 0;
+}
+
+/* 移动端引用块适配 */
+@media (max-width: 767px) {
+  .article-body blockquote {
+    margin: 1rem 0;
+    padding: .8rem 1rem;
+    font-size: .92em;
+    line-height: 1.75;
+  }
+}
+
+
+/* ============== 五、story-kicker 样式（加粗引导句） ============== */
+
+.article-body .story-kicker {
+  text-indent: 0;                          /* 引导句不缩进 */
+  font-weight:700;
+  margin-top: 1.6rem;
+  margin-bottom: .4rem;
+  color: var(--text-dark, #141413);
+}
+
+@media (max-width: 767px) {
+  .article-body .story-kicker {
+    margin-top: 1.2rem;
+    font-size: .95em;
+  }
+}
+
+
+/* ============== 六、章节封面排版 ============== */
+
+.chapter-cover {
+  margin: clamp(2rem, 5vw, 4rem) 0 clamp(1.5rem, 3vw, 2.5rem);
+  text-align: center;
+  padding: 2rem 1rem;
+}
+
+.chapter-cover h2 {
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  line-height: 1.2;
+  margin: .5em 0 0;
+}
+
+.chapter-cover h2 small {
+  display: block;
+  font-size: .45em;
+  font-weight: 400;
+  color: var(--text-light, #757063);
+  margin-top: .4em;
+  letter-spacing: .08em;
+}
+
+.chapter-label {
+  font-size: .78rem;
+  letter-spacing: .25em;
+  color: var(--accent-gold, #c67b2e);
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+@media (max-width: 767px) {
+  .chapter-cover {
+    margin: 1.8rem 0 1.2rem;
+    padding: 1.2rem .75rem;
+  }
+}
+
+
+/* ============== 七、交互卡片 / 图表卡片通用排版 ============== */
+
+.interaction-card,
+.chart-card,
+.process-card,
+.loop-card,
+.waffle-module,
+.country-runway,
+.city-slider {
+  margin: clamp(1.5rem, 3vw, 2.5rem) 0;
+  padding: clamp(1rem, 2.5vw, 1.8rem);
+  background: var(--card-bg, rgba(255, 252, 242, .88));
+  border-radius: var(--radius-md, 12px);
+  box-shadow: var(--shadow-soft, 0 24px 80px rgba(44, 34, 24, .14));
+}
+
+.interaction-card h3,
+.chart-card h3,
+.process-card h3,
+.loop-card h3,
+.waffle-module h3,
+.country-runway h3,
+.city-slider h3 {
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  margin: 0 0 .8rem;
+}
+
+@media (max-width: 767px) {
+  .interaction-card,
+  .chart-card,
+  .process-card,
+  .loop-card,
+  .waffle-module,
+  .country-runway,
+  .city-slider {
+    margin: 1.2rem 0;
+    padding: 1rem;
+    border-radius: var(--radius-sm, 8px);
+  }
+}
+
+
+/* ============== 八、visual-note / source-link 辅助文字 ============== */
+
+.visual-note {
+  font-size: .88em;
+  color: var(--text-light, #757063);
+  text-indent: 0;
+  margin: 1rem 0;
+  padding: .6rem 1rem;
+  border: 1px dashed var(--text-extralight, #cfccc5);
+  border-radius: var(--radius-sm, 8px);
+}
+
+.source-link {
+  font-size: .82em;
+  word-break: break-all;
+}
+
+.source-link a {
+  color: var(--accent-blue, #315f78);
+}
+
+@media (max-width: 767px) {
+  .visual-note {
+    font-size: .85em;
+    padding: .5rem .75rem;
+  }
+}
+
+
+/* ============== 九、数据来源面板 ============== */
+
+.sources-panel {
+  margin: clamp(2rem, 4vw, 3rem) 0;
+  padding: 1.5rem;
+  border-top: 2px solid var(--text-extralight, #cfccc5);
+}
+
+.sources-panel h2 {
+  font-size: clamp(1.1rem, 2vw, 1.4rem);
+  margin: 0 0 .8rem;
+}
+
+.sources-panel ul {
+  padding-left: 1.2em;
+  font-size: .88em;
+  line-height: 1.7;
+  color: var(--text-light, #757063);
+}
+
+@media (max-width: 767px) {
+  .sources-panel {
+    margin: 1.5rem 0;
+    padding: 1rem;
+  }
+}
+
+
+/* ============== 十、结语 / 树根结尾 ============== */
+
+.root-ending {
+  margin: clamp(2rem, 5vw, 4rem) auto;
+  max-width: 600px;
+  text-align: center;
+  padding: 2rem 1.5rem;
+}
+
+.root-ending h2 {
+  font-size: clamp(1.1rem, 2vw, 1.5rem);
+  margin: 0 0 .6rem;
+}
+
+.root-ending p {
+  font-size: .88em;
+  color: var(--text-light, #757063);
+  text-indent: 0;
+}
+
+@media (max-width: 767px) {
+  .root-ending {
+    margin: 1.5rem auto;
+    padding: 1.2rem 1rem;
+  }
+}

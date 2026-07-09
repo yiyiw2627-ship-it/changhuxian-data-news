@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>滚动叠化图片展示</title>
+<style>
+  /* ========== 全局字体：思源宋体 ========== */
+  :root{
+    --font-sans: "Noto Serif SC", serif;
+    --font-serif: "Noto Serif SC", serif;
+  }
+  html, body{
+    font-family: "Noto Serif SC", serif;
+  }
+  h1, h2, h3, h4, h5, h6,
+  .chapter-label, .eyebrow,
+  .title-overlay h2, .chapter-cover h2,
+  .root-ending h2, .sources-panel h2,
+  .story-kicker, .process-flow-title,
+  .interaction-card h3, .chart-card h3,
+  .process-card h3, .loop-card h3,
+  .waffle-module h3, .modal-title,
+  .tooltip-title, .country-name,
+  .person-name, #calcOutput{
+    font-weight: 700;
+  }
+  p, li, span, div, a, td, th,
+  label, input, textarea, button{
+    font-weight: 400;
+  }
+
+  /* ============== 基础重置 ============== */
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body {
+    width: 100%;
+    /* 撑出滚动空间：5张图，每张800px行程 = 4000px + 首屏100vh */
+    height: calc(100vh + 4000px);
+    background: #111;
+  }
+
+  /* ============== 图片层：全部 fixed 固定在视口 ============== */
+  .crossfade-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover;
+    will-change: opacity;
+    pointer-events: none;
+  }
+
+  /* z-index 按顺序递增，通过 opacity 控制可见性 */
+  .crossfade-layer:nth-child(1) { z-index: 1; }
+  .crossfade-layer:nth-child(2) { z-index: 2; }
+  .crossfade-layer:nth-child(3) { z-index: 3; }
+  .crossfade-layer:nth-child(4) { z-index: 4; }
+  .crossfade-layer:nth-child(5) { z-index: 5; }
+
+  /* ============== 底部文案层（可选，浮在最上层） ============== */
+  .caption-overlay {
+    position: fixed;
+    bottom: 8vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    color: #fff;
+    font-family: "Noto Serif SC", "Songti SC", serif;
+    font-size: clamp(1.2rem, 3vw, 2rem);
+    letter-spacing: 0.08em;
+    text-shadow: 0 2px 12px rgba(0,0,0,.6);
+    text-align: center;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity .5s ease;
+  }
+  .caption-overlay.is-visible {
+    opacity: 1;
+  }
+
+  /* ============== 滚动提示（首屏底部） ============== */
+  .scroll-hint {
+    position: fixed;
+    bottom: 3vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    color: rgba(255,255,255,.6);
+    font-size: .85rem;
+    letter-spacing: .15em;
+    pointer-events: none;
+    animation: hint-pulse 2s ease-in-out infinite;
+  }
+  @keyframes hint-pulse {
+    0%, 100% { opacity: .6; }
+    50% { opacity: .2; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ============== 5张全屏图片（替换 src 为你自己的图片路径） ============== -->
+<!-- 图片1：椅子 -->
+<img class="crossfade-layer" id="cf-0"
+     src="./assets/images/chair-1.jpg"
+     alt="椅子">
+<!-- 图片2：第一句文案 -->
+<img class="crossfade-layer" id="cf-1"
+     src="./assets/images/chair-2.jpg"
+     alt="第一句文案">
+<!-- 图片3：第二句文案 -->
+<img class="crossfade-layer" id="cf-2"
+     src="./assets/images/chair-3.jpg"
+     alt="第二句文案">
+<!-- 图片4：第三句文案 -->
+<img class="crossfade-layer" id="cf-3"
+     src="./assets/images/chair-4.jpg"
+     alt="第三句文案">
+<!-- 图片5：结尾文案 -->
+<img class="crossfade-layer" id="cf-4"
+     src="./assets/images/chair-5.jpg"
+     alt="结尾文案">
+
+<!-- 底部文案（可选） -->
+<div class="caption-overlay" id="caption"></div>
+
+<!-- 滚动提示 -->
+<div class="scroll-hint" id="scrollHint">向下滚动</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ============== 配置 ============== */
+  var IMAGES_COUNT = 5;          // 图片总数
+  var SCROLL_PER_IMAGE = 800;    // 每张图片占用的滚动行程（px）
+  var TOTAL_SCROLL = IMAGES_COUNT * SCROLL_PER_IMAGE; // 总行程
+
+  /* 文案（可选，与图片对应） */
+  var CAPTIONS = [
+    '',              // 第1张无文案
+    '第一句文案',
+    '第二句文案',
+    '第三句文案',
+    '结尾文案'
+  ];
+
+  /* ============== 获取 DOM ============== */
+  var layers = [];
+  for (var i = 0; i < IMAGES_COUNT; i++) {
+    layers.push(document.getElementById('cf-' + i));
+  }
+  var captionEl = document.getElementById('caption');
+  var hintEl = document.getElementById('scrollHint');
+
+  /* ============== 初始化：只显示第1张 ============== */
+  for (var j = 0; j < IMAGES_COUNT; j++) {
+    if (layers[j]) layers[j].style.opacity = j === 0 ? '1' : '0';
+  }
+
+  /* ============== 滚动驱动叠化 ============== */
+  var ticking = false;
+
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(updateCrossfade);
+  }
+
+  function updateCrossfade() {
+    ticking = false;
+
+    var scrollY = window.scrollY || window.pageYOffset;
+    /* progress: 0（首屏）→ 1（全部滚完） */
+    var progress = Math.max(0, Math.min(1, scrollY / TOTAL_SCROLL));
+
+    /* 隐藏滚动提示 */
+    if (progress > 0.02 && hintEl) {
+      hintEl.style.opacity = '0';
+    }
+
+    /* 计算当前在哪两张图之间 */
+    var scaledIndex = progress * (IMAGES_COUNT - 1);
+    var currentIdx = Math.floor(scaledIndex);
+    var nextIdx = Math.min(currentIdx + 1, IMAGES_COUNT - 1);
+    var localProgress = scaledIndex - currentIdx; // 0~1，当前区间的进度
+
+    /* 更新所有图片的 opacity */
+    for (var k = 0; k < IMAGES_COUNT; k++) {
+      if (!layers[k]) continue;
+      if (k < currentIdx) {
+        /* 已过去的图片：完全透明 */
+        layers[k].style.opacity = '0';
+      } else if (k === currentIdx) {
+        /* 当前图片：逐渐淡出 */
+        layers[k].style.opacity = String(1 - localProgress);
+      } else if (k === nextIdx && nextIdx !== currentIdx) {
+        /* 下一张图片：逐渐淡入 */
+        layers[k].style.opacity = String(localProgress);
+      } else {
+        /* 还没到的图片：完全透明 */
+        layers[k].style.opacity = '0';
+      }
+    }
+
+    /* 更新文案 */
+    if (captionEl && CAPTIONS[nextIdx]) {
+      captionEl.textContent = CAPTIONS[nextIdx];
+      captionEl.classList.add('is-visible');
+    } else if (captionEl) {
+      captionEl.classList.remove('is-visible');
+    }
+  }
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+
+  /* 首次调用 */
+  updateCrossfade();
+})();
+</script>
+</body>
+</html>
