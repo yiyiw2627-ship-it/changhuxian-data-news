@@ -1521,8 +1521,8 @@
     width: 100%;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    border-radius: 3px;
+    height: 10px;
+    border-radius: 5px;
     background: linear-gradient(to right, var(--accent-green, #5f7d4f) 0%, var(--accent-green, #5f7d4f) 10%, rgba(20,20,19,.1) 10%);
     outline: none;
     cursor: pointer;
@@ -1531,27 +1531,33 @@
   .uncle-slider-wrap input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent-green, #5f7d4f);
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     cursor: grab;
     transition: transform .15s ease;
+    /* 热区扩展：透明外圈扩大点击区域 */
+    outline: 12px solid transparent;
+    outline-offset: 0;
   }
   .uncle-slider-wrap input[type="range"]::-webkit-slider-thumb:active{
     transform: scale(1.15);
     cursor: grabbing;
   }
   .uncle-slider-wrap input[type="range"]::-moz-range-thumb{
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent-green, #5f7d4f);
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     cursor: grab;
+    /* 热区扩展 */
+    outline: 12px solid transparent;
+    outline-offset: 0;
   }
   .uncle-slider-labels{
     display: flex;
@@ -1912,8 +1918,8 @@
     width: 90%;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    border-radius: 3px;
+    height: 10px;
+    border-radius: 5px;
     background: linear-gradient(to right, #4a90d9 0%, #4a90d9 0%, #ddd 0%, #ddd 100%);
     outline: none;
     cursor: pointer;
@@ -1929,6 +1935,8 @@
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,.2);
     cursor: grab;
+    outline: 14px solid transparent;
+    outline-offset: 0;
   }
   .city-pane input[type="range"]::-webkit-slider-thumb:active{
     cursor: grabbing;
@@ -1939,6 +1947,8 @@
     border-radius: 50%;
     background: #4a90d9;
     border: 2px solid #fff;
+    outline: 14px solid transparent;
+    outline-offset: 0;
     box-shadow: 0 1px 4px rgba(0,0,0,.2);
     cursor: grab;
   }
@@ -2345,6 +2355,8 @@
   }
   .jj-avatar{
     font-size: 2.2rem;
+    padding: 8px;
+    line-height: 1;
     opacity: .25;
     transition: opacity .4s ease, transform .3s ease;
     cursor: pointer;
@@ -2365,7 +2377,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: center;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 
   /* 左右信息栏 */
@@ -2405,6 +2417,7 @@
     display: flex;
     justify-content: center;
     align-items: flex-start;
+    margin-top: 1.5rem;
   }
   .jj-semicircle{
     position: relative;
@@ -2443,7 +2456,7 @@
     content: "";
     position: absolute;
     top: 50%; left: 50%;
-    width: 120px; height: 120px;
+    width: 48px; height: 48px;
     transform: translate(-50%, -50%);
     border-radius: 50%;
     background: transparent;
@@ -4549,7 +4562,7 @@
     }
 
     /* [热区精度兜底] 距离阈值 120px，避免远处误吸附、跳档 */
-    var SNAP_THRESHOLD = 14400;
+    var SNAP_THRESHOLD = 2304;
     function findNearestJob(px, py, lastJob) {
       var minDist = Infinity;
       var nearest = lastJob || 0;

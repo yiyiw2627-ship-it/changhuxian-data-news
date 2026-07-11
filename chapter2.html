@@ -1488,8 +1488,8 @@
     width: 100%;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    border-radius: 3px;
+    height: 10px;
+    border-radius: 5px;
     background: linear-gradient(to right, var(--accent-green, #5f7d4f) 0%, var(--accent-green, #5f7d4f) 10%, rgba(20,20,19,.1) 10%);
     outline: none;
     cursor: pointer;
@@ -1498,27 +1498,33 @@
   .uncle-slider-wrap input[type="range"]::-webkit-slider-thumb{
     -webkit-appearance: none;
     appearance: none;
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent-green, #5f7d4f);
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     cursor: grab;
     transition: transform .15s ease;
+    /* 热区扩展：透明外圈扩大点击区域 */
+    outline: 12px solid transparent;
+    outline-offset: 0;
   }
   .uncle-slider-wrap input[type="range"]::-webkit-slider-thumb:active{
     transform: scale(1.15);
     cursor: grabbing;
   }
   .uncle-slider-wrap input[type="range"]::-moz-range-thumb{
-    width: 22px;
-    height: 22px;
+    width: 28px;
+    height: 28px;
     border-radius: 50%;
     background: var(--accent-green, #5f7d4f);
     border: 3px solid #fff;
     box-shadow: 0 2px 8px rgba(0,0,0,.2);
     cursor: grab;
+    /* 热区扩展 */
+    outline: 12px solid transparent;
+    outline-offset: 0;
   }
   .uncle-slider-labels{
     display: flex;
@@ -2029,8 +2035,8 @@
     width: 90%;
     -webkit-appearance: none;
     appearance: none;
-    height: 6px;
-    border-radius: 3px;
+    height: 10px;
+    border-radius: 5px;
     background: linear-gradient(to right, #4a90d9 0%, #4a90d9 0%, #ddd 0%, #ddd 100%);
     outline: none;
     cursor: pointer;
@@ -2046,6 +2052,8 @@
     border: 2px solid #fff;
     box-shadow: 0 1px 4px rgba(0,0,0,.2);
     cursor: grab;
+    outline: 14px solid transparent;
+    outline-offset: 0;
   }
   .city-pane input[type="range"]::-webkit-slider-thumb:active{
     cursor: grabbing;
@@ -2056,6 +2064,8 @@
     border-radius: 50%;
     background: #4a90d9;
     border: 2px solid #fff;
+    outline: 14px solid transparent;
+    outline-offset: 0;
     box-shadow: 0 1px 4px rgba(0,0,0,.2);
     cursor: grab;
   }
@@ -5158,7 +5168,7 @@
       {n:'脑卒中',r:'约12.7%',k:95,s:'直接致瘫率最高',c:'#B84C3A'},
       {n:'慢阻肺',r:'约13.7%',k:80,s:'导致严重活动能力丧失',c:'#8B7D6B'},
       {n:'认知症',r:'约5%-7%',k:90,s:'一旦患病即需全程照护',c:'#6B5B8D'},
-      {n:'恶性肿瘤',r:'2.9%-3.3%',k:88,s:'晚期失能程度极高',c:'#4A6741'},
+      {n:'恶性肿瘤',r:'2.9%-3.3%',k:87,s:'晚期失能程度极高',c:'#4A6741'},
       {n:'慢性肾病',r:'约11%-14%',k:73,s:'致残风险中高',c:'#3D6B8E'}
     ];
 
