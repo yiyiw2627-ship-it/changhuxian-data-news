@@ -34,47 +34,28 @@
     font-weight: 400;
   }
 
-  /* ============== 自定义光标 · 雨伞开合 ============== */
-  /* 全局隐藏系统鼠标，由 DOM 元素 .umbrella-cursor 模拟跟随 */
+  /* ============== 自定义光标 · 雨伞开合（DOM + 区域热区方案） ============== */
+  /*
+   * [全局重构] 使用 DOM 元素模拟光标 + 区域点击热区检测。
+   * 鼠标移动：transform: translate3d() GPU 加速，零延迟。
+   * 点击热区：伞覆盖区域（48×48）的 9 个采样点检测，
+   *          伞尖、伞柄、伞面任意位置触碰可交互元素都能触发点击。
+   */
   html, body { cursor: none; }
   *, *::before, *::after { cursor: none !important; }
 
-  /* —— 可调参数（中文注释） —— */
-  :root {
-    --cursor-size: 48px;          /* 光标整体尺寸（宽=高） */
-    --cursor-trans-duration: .18s;/* 跟随移动过渡时长（位置插值） */
-    --cursor-state-duration: .25s;/* 开合切换动画时长（透明度 + 缩放） */
-    --cursor-ease: cubic-bezier(.22,.8,.36,1); /* 缓动函数 */
-    --cursor-scale-idle: 1;       /* 常态（收拢伞）缩放比例 */
-    --cursor-scale-press: 1.18;   /* 按下（张开伞）缩放比例：略放大更显反馈 */
-    --cursor-z: 2147483647;       /* 顶层 z-index，确保覆盖一切弹层 */
-  }
-
-  /* —— 自定义光标主体 —— */
-  /* 由 JS 在 mousemove / mousedown / mouseup 中切换 .is-press 类，本样式只负责呈现 */
   .umbrella-cursor {
     position: fixed;
-    left: 0;
-    top: 0;
-    width: var(--cursor-size);
-    height: var(--cursor-size);
-    /* 复位以前 base.css / story.css 中的边框/圆角伞形伪装，避免与图片素材叠加 */
-    border: 0 !important;
-    border-radius: 0 !important;
-    background: transparent !important;
-    mix-blend-mode: normal !important;
-    pointer-events: none;                 /* 不拦截任何鼠标事件 */
-    z-index: var(--cursor-z);             /* 置于最高层级 */
-    transform: translate(-50%, -50%) scale(var(--cursor-scale-idle));
-    /* 同时过渡位置（如使用 left/top）与缩放，开启平滑动画 */
-    transition:
-      transform var(--cursor-state-duration) var(--cursor-ease),
-      left var(--cursor-trans-duration) var(--cursor-ease),
-      top var(--cursor-trans-duration) var(--cursor-ease);
-    will-change: transform, left, top;
+    left: 0; top: 0;
+    width: 48px; height: 48px;
+    pointer-events: none;
+    z-index: 2147483647;
+    /* [灵敏度优化] transform: translate3d() 触发 GPU 渲染管线，
+       无 layout/paint 开销，零延迟跟随鼠标 */
+    transform: translate3d(-100px, -100px, 0);
+    will-change: transform;
   }
 
-  /* 两张素材通过两个伪元素叠放，靠 opacity 切换，开合即获平滑淡入淡出 */
   .umbrella-cursor::before,
   .umbrella-cursor::after {
     content: "";
@@ -83,44 +64,32 @@
     background-position: center;
     background-repeat: no-repeat;
     background-size: contain;
-    transition: opacity var(--cursor-state-duration) var(--cursor-ease);
-    /* 覆盖旧伞形伪装的 ::after 定位/边框 */
+    transition: opacity .25s cubic-bezier(.22,.8,.36,1);
     left: 0; top: 0; width: auto; height: auto;
     border: 0 !important;
     border-radius: 0 !important;
   }
 
-  /* 常态：收拢伞（默认显示） */
-  /* 图片地址：./assets/cursor/cursor_umbrella_close.png  ← 修改此处替换素材 */
   .umbrella-cursor::before {
     background-image: url("./assets/cursor/cursor_umbrella_close.png");
     opacity: 1;
   }
 
-  /* 按下：张开伞（默认隐藏，按下时显示） */
-  /* 图片地址：./assets/cursor/cursor_umbrella_open.png   ← 修改此处替换素材 */
   .umbrella-cursor::after {
     background-image: url("./assets/cursor/cursor_umbrella_open.png");
     opacity: 0;
   }
 
-  /* 按下状态：交叉淡入淡出 + 整体放大 */
-  .umbrella-cursor.is-press {
-    transform: translate(-50%, -50%) scale(var(--cursor-scale-press));
-  }
   .umbrella-cursor.is-press::before { opacity: 0; }
   .umbrella-cursor.is-press::after  { opacity: 1; }
 
-  /* —— 移动端：屏幕宽度小于 768px 时禁用自定义光标，恢复系统鼠标 —— */
   @media (max-width: 767.98px), (hover: none) and (pointer: coarse) {
     html, body { cursor: auto; }
     *, *::before, *::after { cursor: auto !important; }
     .umbrella-cursor { display: none !important; }
   }
 
-  /* —— 减弱动效偏好：关闭过渡动画 —— */
   @media (prefers-reduced-motion: reduce) {
-    .umbrella-cursor,
     .umbrella-cursor::before,
     .umbrella-cursor::after {
       transition: none !important;
@@ -2461,13 +2430,25 @@
   /* 职业锚点 */
   .jj-anchor{
     position: absolute;
-    width: 10px;
-    height: 10px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     background: rgba(20,20,19,.15);
     transform: translate(-50%, -50%);
     transition: background .3s ease;
-    pointer-events: none;
+    pointer-events: auto;
+  }
+  /* [热区扩展] 锚点不可见热区，向外拓展 28px，视觉透明不渲染画面。 */
+  .jj-anchor::before{
+    content: "";
+    position: absolute;
+    top: 50%; left: 50%;
+    width: 120px; height: 120px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: transparent;
+    pointer-events: auto;
+    cursor: none;
   }
   .jj-anchor.is-active{
     background: var(--accent-green, #5f7d4f);
@@ -2779,7 +2760,8 @@
   </nav>
 
   <canvas id="ambient-canvas" aria-hidden="true"></canvas>
-  <div id="cursor" class="umbrella-cursor is-press" aria-hidden="true"></div>
+  <div id="cursor" class="umbrella-cursor" aria-hidden="true"></div>
+
   <a class="skip-link" href="#story">跳到正文</a>
 <section class="chapter-cover chapter-3" id="chapter3" data-reveal>
   <!-- 全屏封面背景图 -->
@@ -3044,88 +3026,6 @@
   <script src="./assets/scripts/charts.js"></script>
   <script src="./assets/scripts/interactions.js"></script>
   <script src="./assets/scripts/generative.js"></script>
-  <script>
-  (function () {
-    'use strict';
-
-    // ============== 移动端判断：触摸设备或视口 < 768px 时停止自定义光标逻辑 ==============
-    var isMobile = (window.matchMedia && window.matchMedia('(max-width: 767.98px), (hover: none) and (pointer: coarse)').matches);
-    if (isMobile) return;
-
-    var cursor = document.getElementById('cursor');
-    if (!cursor) return;
-
-    // ============== 可调参数 ==============
-    var EASING = 1;            // 缓动系数：1 = 无延迟，直接跟随鼠标位置
-    var INIT_OFFSCREEN = -100;  // 初始位置（屏幕外），首次移动鼠标后立即归位
-
-    // 目标坐标（鼠标真实位置）与当前坐标（光标渲染位置）
-    var targetX = INIT_OFFSCREEN, targetY = INIT_OFFSCREEN;
-    var currentX = INIT_OFFSCREEN, currentY = INIT_OFFSCREEN;
-    var hasMoved = false;       // 是否已经收到过第一次 mousemove
-    var rafId = null;
-
-    // ============== 状态切换：收拢伞 / 张开伞 ==============
-    function openUmbrella()  { cursor.classList.add('is-press'); }   // 张开伞
-    function closeUmbrella() { cursor.classList.remove('is-press'); }// 收拢伞
-
-    // 初始 DOM 是 .is-press（张开伞），首帧之前先归到"收拢伞"常态，等待 mousedown 时再张开
-    closeUmbrella();
-
-    // ============== 鼠标移动：仅记录目标坐标，真正的位移在 rAF 循环中插值 ==============
-    function onMove(e) {
-      targetX = e.clientX;
-      targetY = e.clientY;
-      if (!hasMoved) {
-        // 首次进入：把当前位置直接对齐到鼠标，避免从屏外缓动飞入
-        currentX = targetX;
-        currentY = targetY;
-        hasMoved = true;
-      }
-    }
-
-    // ============== 鼠标按下/抬起：开合伞 ==============
-    function onDown() { openUmbrella(); }   // 按下 → 张开伞
-    function onUp()   { closeUmbrella(); }  // 抬起 → 收拢伞
-
-    // ============== 鼠标移出浏览器窗口：恢复收拢状态 ==============
-    function onLeave() { closeUmbrella(); }
-    function onBlur()  { closeUmbrella(); }
-
-    // ============== rAF 主循环：缓动插值 currentX/Y → targetX/Y ==============
-    function tick() {
-      // 线性插值 (lerp)：current += (target - current) * EASING
-      currentX += (targetX - currentX) * EASING;
-      currentY += (targetY - currentY) * EASING;
-
-      // 通过 left/top 直接定位（CSS 中已用 translate(-50%,-50%) 居中对齐光标中心）
-      cursor.style.left = currentX + 'px';
-      cursor.style.top  = currentY + 'px';
-
-      rafId = requestAnimationFrame(tick);
-    }
-
-    // ============== 事件绑定 ==============
-    document.addEventListener('mousemove', onMove,  { passive: true });
-    document.addEventListener('mousedown', onDown,  { passive: true });
-    document.addEventListener('mouseup',   onUp,    { passive: true });
-    document.addEventListener('mouseleave', onLeave);
-    window.addEventListener('blur', onBlur);
-
-    // 启动主循环
-    rafId = requestAnimationFrame(tick);
-
-    // ============== 视口尺寸变化时重新评估是否进入移动端，进入则停止逻辑 ==============
-    window.addEventListener('resize', function () {
-      var nowMobile = window.matchMedia('(max-width: 767.98px), (hover: none) and (pointer: coarse)').matches;
-      if (nowMobile && rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-        cursor.style.display = 'none';
-      }
-    });
-  })();
-  </script>
   <script>
   /* ============== 光带返回修复脚本 ==============
      场景：点击光带跳转新页面 → 浏览器返回后光带消失/失效。
@@ -4648,9 +4548,11 @@
       return Math.atan2(py - cy, px - cx);
     }
 
-    function findNearestJob(px, py) {
+    /* [热区精度兜底] 距离阈值 120px，避免远处误吸附、跳档 */
+    var SNAP_THRESHOLD = 14400;
+    function findNearestJob(px, py, lastJob) {
       var minDist = Infinity;
-      var nearest = 0;
+      var nearest = lastJob || 0;
       for (var i = 0; i < ANCHOR_POS.length; i++) {
         var dx = ANCHOR_POS[i].x - px;
         var dy = ANCHOR_POS[i].y - py;
@@ -4660,6 +4562,7 @@
           nearest = i;
         }
       }
+      if (minDist > SNAP_THRESHOLD) return lastJob || 0;
       return nearest;
     }
 
@@ -4677,7 +4580,7 @@
     semicircle.addEventListener('click', function (e) {
       if (isDragging) return;
       var pos = getPointerPos(e);
-      var job = findNearestJob(pos.x, pos.y);
+      var job = findNearestJob(pos.x, pos.y, currentJob);
       switchJob(job);
     });
 
@@ -4702,7 +4605,7 @@
       function onMove(ev) {
         isDragging = true;
         var pos = getPointerPos(ev);
-        var job = findNearestJob(pos.x, pos.y);
+        var job = findNearestJob(pos.x, pos.y, currentJob);
         switchJob(job);
       }
 
@@ -4724,7 +4627,7 @@
       function onMove(ev) {
         isDragging = true;
         var pos = getPointerPos(ev);
-        var job = findNearestJob(pos.x, pos.y);
+        var job = findNearestJob(pos.x, pos.y, currentJob);
         switchJob(job);
       }
 
@@ -4941,14 +4844,13 @@
       var progress = Math.min(1, consumedScroll / totalDistance);
 
       // 0%-7%：洗澡难短渐变淡入
-      // 7%-25%：洗澡难完整停留（18%）
-      // 25%-32%：移位难短渐变淡入（同7%）
-      // 32%-50%：两张同屏完整停留（18%）
-      // 50%-57%：情绪差短渐变淡入（同7%）
-      // 57%-75%：三张同屏完整停留（18%）
+      // 7%-35%：洗澡难完整停留（28%），在页面中央完整呈现后再变化
+      // 35%-42%：移位难短渐变淡入（同7%）
+      // 42%-55%：两张同屏完整停留（13%）
+      // 55%-62%：情绪差短渐变淡入（同7%）
+      // 62%-75%：三张同屏完整停留（13%）
       // 75%-100%：整体匀速离场
       var fade = 0.07;  // 统一渐变时长
-      var stay = 0.18;  // 均等停留时长
 
       // 只有当模块进入视口中部时才开始动画
       var rect = figure.getBoundingClientRect();
@@ -4958,15 +4860,77 @@
         return;
       }
 
+      var stay1 = 0.28;  // 洗澡难完整停留时长
+      var stay2 = 0.13;  // 两张/三张同屏停留时长
+
       var p1 = Math.min(1, progress / fade);
-      var p2 = Math.min(1, Math.max(0, (progress - (fade + stay)) / fade));
-      var p3 = Math.min(1, Math.max(0, (progress - (fade + stay + fade + stay)) / fade));
-      var exit = Math.min(1, Math.max(0, (progress - (fade + stay + fade + stay + fade + stay)) / (1 - (fade + stay + fade + stay + fade + stay))));
+      var p2 = Math.min(1, Math.max(0, (progress - (fade + stay1)) / fade));
+      var p3 = Math.min(1, Math.max(0, (progress - (fade + stay1 + fade + stay2)) / fade));
+      var exit = Math.min(1, Math.max(0, (progress - (fade + stay1 + fade + stay2 + fade + stay2)) / (1 - (fade + stay1 + fade + stay2 + fade + stay2))));
 
       segments[0].style.opacity = p1 * (1 - exit);
       segments[1].style.opacity = p2 * (1 - exit);
       segments[2].style.opacity = p3; /* 最后一张图不淡出，留在原位 */
     }
+  })();
+  </script>
+
+  <script>
+  (function () {
+    'use strict';
+
+    var isMobile = (window.matchMedia && window.matchMedia('(max-width: 767.98px), (hover: none) and (pointer: coarse)').matches);
+    if (isMobile) return;
+
+    var cursor = document.getElementById('cursor');
+    if (!cursor) return;
+
+    var SIZE = 48;
+    var HALF = SIZE / 2;
+
+    // [灵敏度优化] transform: translate3d() 触发 GPU 渲染管线
+    function moveCursor(x, y) {
+      cursor.style.transform = 'translate3d(' + (x - HALF) + 'px, ' + (y - HALF) + 'px, 0)';
+    }
+
+    // 鼠标移动：直接定位，无延迟
+    function onMove(e) {
+      moveCursor(e.clientX, e.clientY);
+    }
+
+    // 鼠标按下：张开伞（仅视觉，不干预事件传播）
+    function onDown(e) {
+      cursor.classList.add('is-press');
+    }
+
+    // 鼠标抬起：收拢伞（仅视觉）
+    function onUp(e) {
+      cursor.classList.remove('is-press');
+    }
+
+    // 鼠标离开
+    function onLeave() {
+      cursor.classList.remove('is-press');
+    }
+
+    // 事件绑定
+    document.addEventListener('mousemove', onMove, { passive: true });
+    document.addEventListener('mousedown', onDown, { passive: true });
+    document.addEventListener('mouseup', onUp, { passive: true });
+    document.addEventListener('mouseleave', onLeave);
+
+    // 初始位置
+    moveCursor(-100, -100);
+
+    // resize 时重新评估移动端
+    window.addEventListener('resize', function () {
+      var nowMobile = window.matchMedia('(max-width: 767.98px), (hover: none) and (pointer: coarse)').matches;
+      if (nowMobile) {
+        cursor.style.display = 'none';
+      } else {
+        cursor.style.display = '';
+      }
+    });
   })();
   </script>
 </body>

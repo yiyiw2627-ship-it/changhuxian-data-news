@@ -80,7 +80,7 @@ body{
   color:var(--text-dark);
   font:14pt/1.85 "Noto Serif SC", serif;
   font-weight:var(--font-weight-body);
-  cursor:none
+  cursor:auto
 }
 
 
