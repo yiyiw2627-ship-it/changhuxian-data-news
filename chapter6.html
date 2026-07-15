@@ -4526,9 +4526,12 @@
     var X_MIN = 0, X_MAX = 4.5;
     var Y_MIN = 0, Y_MAX = 0.5;
 
-    /* 绘图区域边距（占图片宽高的比例），由图片分析得出 */
-    var PL = 0.12, PR = 0.05; /* 左右边距 */
-    var PT = 0.18, PB = 0.15; /* 上下边距 */
+    /* 绘图区域边距（占图片宽高的比例），由新图分析得出 */
+    var PL = 0.093, PR = 0.038; /* 左右边距 */
+    var PT = 0.155, PB = 0.216; /* 上下边距 */
+
+    /* 匹配阈值：归一化距离平方，避免远处误匹配 */
+    var MATCH_THRESHOLD = 0.0025; /* 约 5% 的绘图区域对角线距离 */
 
     function pixelToData(mx, my, w, h) {
       var plotW = w * (1 - PL - PR);
@@ -4560,6 +4563,11 @@
         var dy = (coords.y - d.py) / (Y_MAX - Y_MIN);
         var dist = dx*dx + dy*dy;
         if (dist < bestDist) { bestDist = dist; best = d; }
+      }
+
+      /* 超出匹配阈值则不显示 */
+      if (!best || bestDist > MATCH_THRESHOLD) {
+        tip.classList.remove('is-show'); return;
       }
 
       if (!best) return;
