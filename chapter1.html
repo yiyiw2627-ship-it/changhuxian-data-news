@@ -3111,7 +3111,8 @@
 <blockquote data-reveal><p style="text-indent:2em">外婆因脑梗失能卧床，刘宇的舅舅每天在工作之余还需要额外花费时间赶去照料。“请护工太贵了，舅舅又没有好的经济状况支撑。” 刘宇无奈道。根据中国人民大学老年学研究所的调查，家庭照护者日平均照料时长约 15.7 小时，长期护理引发的身心问题、经济压力及家庭矛盾日益突出，<strong>「一人失能，全家失衡」</strong>—— 这句感慨，已成为千百万家庭的日常。</p></blockquote>
 <section class="interaction-card uncle-tracker" data-reveal>
   <!-- 第一层：标题 -->
-  <h3>点击观看：刘宇舅舅的一日轨迹</h3>
+  <h3>刘宇舅舅的一日轨迹</h3>
+  <p style="margin:.2rem 0 0;font-size:.76rem;line-height:1.5;color:rgba(190,138,52,.82);text-align:center;letter-spacing:.12em;">滑动下方时间轴，查看刘宇舅舅一天的生活画面</p>
   <!-- 第二层：插画展示区（原图尺寸居中，不拉伸压缩） -->
   <div class="uncle-illust-wrap">
     <img id="uncleIllust" src="./assets/images/uncle-v2-01.png" alt="刘宇舅舅的一日轨迹插画" loading="lazy">
@@ -3177,8 +3178,8 @@
         </div>
         <div class="dial-arrow" aria-hidden="true">&#x21bb;</div>
         <div class="dial-hint" aria-hidden="true">
-          <span class="hint-zh">拖拽切换年份</span>
-          <span class="hint-en">Drag to explore</span>
+          <span class="hint-zh">点击或拖拽切换年份</span>
+          <span class="hint-en">Click or drag to explore</span>
         </div>
       </div>
     </div>
@@ -3775,9 +3776,9 @@
       velocity = 0;
       lastY = e.clientY;
       lastTime = performance.now();
-      dial.setPointerCapture(e.pointerId);
       dial.classList.add('is-dragging');
       if (rafId) cancelAnimationFrame(rafId);
+      /* 不使用 setPointerCapture，让 click 事件正常传播到 tick 按钮 */
     }
 
     function onPointerMove(e) {
@@ -3811,6 +3812,7 @@
         var dir = totalDelta > 0 ? 1 : -1;
         switchByIndex(dir);
       }
+      /* 短距离释放视为点击，由 tick 的 click 事件处理 */
 
       /* 惯性滚动（可选视觉反馈） */
       if (Math.abs(velocity) > MOMENTUM_MIN) {
